@@ -46,12 +46,12 @@
 // };
 
 // // GET - List all courses
-// app.get("/courses", (req, res) => {
+// app.get("", (req, res) => {
 //     res.json(courses.cse);
 // });
 
 // // GET - Details of a specific course by name
-// app.get("/courses/:courseName", (req, res) => {
+// app.get("/:courseName", (req, res) => {
 //     const course = courses.cse.find((c) => c.course === req.params.courseName);
 //     if (!course) {
 //         res.status(404).send("Course not found");
@@ -61,7 +61,7 @@
 // });
 
 // // GET - Average rating of a specific course
-// app.get("/courses/:courseName/rating", (req, res) => {
+// app.get("/:courseName/rating", (req, res) => {
 //     const course = courses.cse.find((c) => c.course === req.params.courseName);
 //     if (!course) {
 //         res.status(404).send("Course not found");
@@ -71,13 +71,13 @@
 // });
 
 // // POST - Create a new course
-// app.post("/courses", (req, res) => {
+// app.post("", (req, res) => {
 //     courses.cse.push(req.body);
 //     res.send("Course added");
 // });
 
 // // POST - Add a rating to a course
-// app.post("/courses/:courseName/rating", (req, res) => {
+// app.post("/:courseName/rating", (req, res) => {
 //     const course = courses.cse.find((c) => c.course === req.params.courseName);
 //     if (!course) {
 //         res.status(404).send("Course not found");
@@ -92,7 +92,7 @@
 // });
 
 // // PUT - Modify information of a course
-// app.put("/courses/:courseName", (req, res) => {
+// app.put("/:courseName", (req, res) => {
 //     const index = courses.cse.findIndex(
 //         (c) => c.course === req.params.courseName
 //     );
@@ -105,7 +105,7 @@
 // });
 
 // // PATCH - Update partial information of a course
-// app.patch("/courses/:courseName", (req, res) => {
+// app.patch("/:courseName", (req, res) => {
 //     const index = courses.cse.findIndex(
 //         (c) => c.course === req.params.courseName
 //     );
@@ -123,7 +123,7 @@
 // });
 
 // // DELETE - Remove a course by name
-// app.delete("/courses/:courseName", (req, res) => {
+// app.delete("/:courseName", (req, res) => {
 //     const index = courses.cse.findIndex(
 //         (c) => c.course === req.params.courseName
 //     );
@@ -145,18 +145,18 @@
 // });
 
 import express from "express";
-import cors from "cors"
-import dotenv from 'dotenv';
+import cors from "cors";
+import dotenv from "dotenv";
 import mongoose from "mongoose";
 
 dotenv.config();
 
-const app = express();
+const app = express.Router();
 app.use(express.json());
 app.use(cors());
 
 // Replace with your MongoDB connection string
-const uri = `mongodb+srv://user_01:${process.env.MONGODB_PASSWORD}@cluster0.2aepu2v.mongodb.net/Courses?retryWrites=true&w=majority`;
+const uri = process.env.MONGODB_URI;
 mongoose.connect(uri);
 
 const db = mongoose.connection;
@@ -165,83 +165,86 @@ db.on("error", console.error.bind(console, "MongoDB connection error:"));
 // Since the data is stored in an array within a single document,
 // we will create a schema and model for the document that contains the 'cse' field.
 const CourseSchema = new mongoose.Schema({
-  cse: [
-    {
-      course: String,
-      courseId: Number,
-      cohort: Number,
-      college: String,
-      semester: Number,
-      averageRating: Number,
-      studentsVoted: Number,
-    },
-  ],
+	cse: [
+		{
+			course: String,
+			courseId: Number,
+			cohort: Number,
+			college: String,
+			semester: Number,
+			averageRating: Number,
+			studentsVoted: Number,
+		},
+	],
 });
 
 const CoursesDocument = mongoose.model("subjects", CourseSchema);
 
 // Routes
-app.get("/courses", async (req, res) => {
-  try {
-    const doc = await CoursesDocument.findOne();
-    res.json(doc.cse);
-  } catch (error) {
-    res.status(500).send(error);
-  }
+app.get("/", async (req, res) => {
+	try {
+		const doc = await CoursesDocument.findOne();
+		res.json(doc.cse);
+	} catch (error) {
+		res.status(500).send(error);
+	}
 });
 
-app.get("/courses/:courseName", async (req, res) => {
-  try {
-    const doc = await CoursesDocument.findOne();
-    const course = doc.cse.find((c) => c.course === req.params.courseName);
-    res.json(course);
-  } catch (error) {
-    res.status(500).send(error);
-  }
+app.get("/:courseName", async (req, res) => {
+	try {
+		const doc = await CoursesDocument.findOne();
+		const course = doc.cse.find((c) => c.course === req.params.courseName);
+		res.json(course);
+	} catch (error) {
+		res.status(500).send(error);
+	}
 });
 
-app.get("/courses/:courseName/rating", async (req, res) => {
-  try {
-    const doc = await CoursesDocument.findOne();
-    const course = doc.cse.find((c) => c.course === req.params.courseName);
-    res.json({ averageRating: course.averageRating });
-  } catch (error) {
-    res.status(500).send(error);
-  }
+app.get("/:courseName/rating", async (req, res) => {
+	try {
+		const doc = await CoursesDocument.findOne();
+		const course = doc.cse.find((c) => c.course === req.params.courseName);
+		res.json({ averageRating: course.averageRating });
+	} catch (error) {
+		res.status(500).send(error);
+	}
 });
 
-app.post("/courses", async (req, res) => {
-  try {
-    const doc = await CoursesDocument.findOne();
-    doc.cse.push(req.body);
-    await doc.save();
-    res.status(201).send("Course added successfully");
-  } catch (error) {
-    res.status(500).send(error);
-  }
+app.post("", async (req, res) => {
+	try {
+		const doc = await CoursesDocument.findOne();
+		doc.cse.push(req.body);
+		await doc.save();
+		res.status(201).send("Course added successfully");
+	} catch (error) {
+		res.status(500).send(error);
+	}
 });
 
-app.delete('/courses/:courseName', async (req, res) => {
-  const { courseName } = req.params;
-  try {
-    const updatedDocument = await CoursesDocument.findOneAndUpdate(
-      { cse: { $elemMatch: { course: courseName } } },
-      { $pull: { cse: { course: courseName } } }
-    );
+app.delete("/:courseName", async (req, res) => {
+	const { courseName } = req.params;
+	try {
+		const updatedDocument = await CoursesDocument.findOneAndUpdate(
+			{ cse: { $elemMatch: { course: courseName } } },
+			{ $pull: { cse: { course: courseName } } }
+		);
 
-    if (!updatedDocument) {
-      return res.status(404).json({ message: 'Course not found' });
-    }
+		if (!updatedDocument) {
+			return res.status(404).json({ message: "Course not found" });
+		}
 
-    res.status(200).json({ message: 'Course deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting course:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+		res.status(200).json({ message: "Course deleted successfully" });
+	} catch (error) {
+		console.error("Error deleting course:", error);
+		res.status(500).json({ message: "Internal server error" });
+	}
 });
 
 // Start the server
-const port = process.env.PORT;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+// const port = process.env.PORT;
+// app.listen(port, () => {
+// 	console.log(`Server running on port ${port}`);
+// });
+
+export default app;
+
